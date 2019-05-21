@@ -1,0 +1,9 @@
+
+layout_builder_block_sanitizer.sanitizer_form:
+  path: '/lbbs/sanitizer'
+  defaults:
+    _form: '\Drupal\layout_builder_block_sanitizer\Form\SanitizerForm'
+    _title: 'SanitizerForm'
+  requirements:
+    _access: 'TRUE'
+  
