@@ -60,9 +60,13 @@ class LayoutBuilderBlockSanitizerManager {
    */
   public function sanitizeNode($nid_to_sanitize) {
     try {
+      // Load node objet to sanitize.
       $entity = Node::load($nid_to_sanitize);
+
+      // Currently, only handling overrides.
+      // @todo: Sanitize default layouts.
       $types = [
-        'overrides'
+        'overrides',
       ];
       foreach ($types as $type) {
         $contexts['entity'] = EntityContext::fromEntity($entity);

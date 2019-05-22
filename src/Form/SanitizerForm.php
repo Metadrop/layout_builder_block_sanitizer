@@ -113,6 +113,8 @@ class SanitizerForm extends FormBase {
     // Use the $context['sandbox'] at your convenience to store the
     // information needed to track progression between successive calls.
     if (empty($context['sandbox'])) {
+      // Flush caches to avoid false positives looking for block UUID.
+      drupal_flush_all_caches();
       $context['sandbox'] = [];
       $context['sandbox']['progress'] = 0;
       $context['sandbox']['current_node'] = 0;
@@ -124,7 +126,6 @@ class SanitizerForm extends FormBase {
     $current_node = $context['sandbox']['current_node'];
     $limit_node = $context['sandbox']['current_node'] + $limit;
     $result = range($current_node, $limit_node);
-    drupal_set_message($result);
     foreach ($result as $row) {
       \Drupal::service('layout_builder_block_sanitizer.manager')->sanitizeNode($nids[$row]);
       $operation_details = t('Sanitizing NIDs :current to :limit', [
@@ -164,13 +165,8 @@ class SanitizerForm extends FormBase {
     }
     else {
       // An error occurred.
-      // $operations contains the operations that remained unprocessed.
-      $error_operation = reset($operations);
       $messenger
-        ->addMessage(t('An error occurred while processing @operation with arguments : @args', [
-          '@operation' => $error_operation[0],
-          '@args' => print_r($error_operation[0], TRUE),
-        ]));
+        ->addMessage(t('An error occurred while processing.'));
     }
   }
 
