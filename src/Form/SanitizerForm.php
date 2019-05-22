@@ -59,19 +59,27 @@ class SanitizerForm extends FormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
-    $form['node_to_sanitize'] = [
+    $form['individual_node_sanitize'] = [
+      '#type' => 'fieldset',
+      '#title' => 'Individual node sanitization',
+    ];
+    $form['individual_node_sanitize']['node_to_sanitize'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Node to sanitize'),
       '#description' => $this->t('Enter a node ID to sanitize non-existent blocks from it. Be sure to clear caches if blocks have recently been created.'),
       '#maxlength' => 64,
       '#size' => 64,
     ];
-    $form['submit'] = [
+    $form['individual_node_sanitize']['submit'] = [
       '#type' => 'submit',
       '#value' => $this->t('Sanitize a single node'),
     ];
 
-    $form['sanitize_all_nodes'] = [
+    $form['bulk_node_sanitize'] = [
+      '#type' => 'fieldset',
+      '#title' => 'Bulk node sanitization',
+    ];
+    $form['bulk_node_sanitize']['sanitize_all_nodes'] = [
       '#type' => 'submit',
       '#submit' => [
         '::batchSanitizeAllNodesStart',
