@@ -103,7 +103,7 @@ class SanitizerTest extends BrowserTestBase {
     $sanitize_form = [
       'edit-node-to-sanitize' => '1',
     ];
-    $this->submitForm($sanitize_form, 'Submit');
+    $this->submitForm($sanitize_form, 'Sanitize a single node');
 
     // Verify error block no longer on the node.
     $this->drupalGet('node/1');

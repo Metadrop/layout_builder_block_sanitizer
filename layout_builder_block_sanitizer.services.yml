@@ -2,3 +2,5 @@ services:
   layout_builder_block_sanitizer.manager:
     class: Drupal\layout_builder_block_sanitizer\LayoutBuilderBlockSanitizerManager
     arguments: ['@block_content.uuid_lookup', '@plugin.manager.layout_builder.section_storage', '@layout_builder.tempstore_repository']
+  layout_builder_block_sanitizer.batch:
+    class: Drupal\layout_builder_block_sanitizer\LayoutBuilderBlockSanitizerBatch

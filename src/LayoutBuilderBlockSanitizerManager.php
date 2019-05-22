@@ -115,6 +115,9 @@ class LayoutBuilderBlockSanitizerManager {
       }
       $section_storage->save();
     }
+    catch (\TypeError $type_error) {
+      // @todo Figure out why type error is thrown, take appropriate action.
+    }
     catch (\Exception $e) {
       drupal_set_message(t("An exception was encountered: :e", [':e' => $e->getMessage()]), 'warning');
     }
