@@ -1,7 +1,7 @@
-name: layout_builder_block_sanitizer
+name: Layout Builder Block Sanitizer
 type: module
 description: Clean up Layout Builder layouts of non-existent blocks.
 core: 8.x
 package: Custom
 dependencies:
-  - layout_builder
+  - drupal:layout_builder
