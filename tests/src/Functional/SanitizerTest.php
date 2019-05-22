@@ -99,7 +99,7 @@ class SanitizerTest extends BrowserTestBase {
     drupal_flush_all_caches();
 
     // Run sanitization.
-    $this->drupalGet("lbbs/sanitizer");
+    $this->drupalGet("admin/structure/lbbs/sanitizer");
     $sanitize_form = [
       'edit-node-to-sanitize' => '1',
     ];
