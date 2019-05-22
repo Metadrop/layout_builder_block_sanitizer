@@ -5,5 +5,5 @@ layout_builder_block_sanitizer.sanitizer_form:
     _form: '\Drupal\layout_builder_block_sanitizer\Form\SanitizerForm'
     _title: 'Layout Builder Block Sanitizer Control Panel'
   requirements:
-    _permission: 'Use layout builder block sanitizer'
+    _permission: 'use layout builder block sanitizer'
   

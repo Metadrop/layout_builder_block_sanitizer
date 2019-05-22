@@ -51,7 +51,7 @@ class SanitizerForm extends FormBase {
     $form['node_to_sanitize'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Node to sanitize'),
-      '#description' => $this->t('Enter a node ID to sanitize non-existent blocks from it.'),
+      '#description' => $this->t('Enter a node ID to sanitize non-existent blocks from it. Be sure to clear caches if blocks have recently been created.'),
       '#maxlength' => 64,
       '#size' => 64,
     ];
@@ -66,6 +66,7 @@ class SanitizerForm extends FormBase {
         '::batchSanitizeAllNodesStart',
       ],
       '#value' => 'Sanitize all nodes via batch',
+      '#description' => 'Note that caches will be cleared during this process automatically.',
     ];
 
     return $form;
