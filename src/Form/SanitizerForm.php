@@ -75,13 +75,6 @@ class SanitizerForm extends FormBase {
   /**
    * {@inheritdoc}
    */
-  public function validateForm(array &$form, FormStateInterface $form_state) {
-    parent::validateForm($form, $form_state);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $nid_to_sanitize = $form_state->getValue('node_to_sanitize');
     $this->layoutBuilderBlockSanitizerManager->sanitizeNode($nid_to_sanitize);

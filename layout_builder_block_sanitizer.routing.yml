@@ -6,4 +6,3 @@ layout_builder_block_sanitizer.sanitizer_form:
     _title: 'Layout Builder Block Sanitizer Control Panel'
   requirements:
     _permission: 'use layout builder block sanitizer'
-  

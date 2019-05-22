@@ -10,11 +10,14 @@ use Drupal\Core\Plugin\Context\EntityContext;
 use Drupal\layout_builder\Entity\LayoutBuilderEntityViewDisplay;
 use Drupal\Core\Plugin\Context\Context;
 use Drupal\Core\Plugin\Context\ContextDefinition;
+use Drupal\layout_builder\LayoutEntityHelperTrait;
 
 /**
  * Class LayoutBuilderBlockSanitizerManager.
  */
 class LayoutBuilderBlockSanitizerManager {
+
+  use LayoutEntityHelperTrait;
 
   /**
    * Drupal\block_content\BlockContentUuidLookup definition.
@@ -48,7 +51,7 @@ class LayoutBuilderBlockSanitizerManager {
 
   /**
    * Helper callback to get list of nodes.
-   * 
+   *
    * @todo: Get only LB enabled node types?
    */
   public function getNodes() {
@@ -62,41 +65,55 @@ class LayoutBuilderBlockSanitizerManager {
     try {
       // Load node objet to sanitize.
       $entity = Node::load($nid_to_sanitize);
-
-      // Currently, only handling overrides.
-      // @todo: Sanitize default layouts.
-      $types = [
-        'overrides',
-      ];
-      foreach ($types as $type) {
-        $contexts['entity'] = EntityContext::fromEntity($entity);
-        $view_mode = 'full';
-        $view_mode = LayoutBuilderEntityViewDisplay::collectRenderDisplay($entity, $view_mode)->getMode();
-        $contexts['view_mode'] = new Context(new ContextDefinition('string'), $view_mode);
-        $section_storage = $this->pluginManagerLayoutBuilderSectionStorage->load($type, $contexts);
-        $section_storage = $this->layoutBuilderTempstoreRepository->get($section_storage);
-        $id = $section_storage->getStorageId();
-        $sections = $section_storage->getSections();
-        // Check through each section's components to confirm blocks are valid.
-        foreach ($sections as $key => &$section) {
-          $components = $section->getComponents();
-          foreach ($components as $section_component_uuid => $section_component) {
-            $configuration = $section_component->get('configuration');
-            $provider = $configuration['provider'] ?? '';
-            if ($provider == 'block_content') {
-              $raw_id = $configuration['id'];
-              $id = str_replace('block_content:', '', $raw_id);
-              // Attempt to find a block w/ this UUID.
-              $block = $this->blockContentUuidLookup->get($id);
-              if ($block == NULL) {
-                $section->removeComponent($section_component_uuid);
-                drupal_set_message(t("Sanitized :block", [':block' => $section_component_uuid]));
-              }
+      $type = 'overrides';
+      $contexts['entity'] = EntityContext::fromEntity($entity);
+      $view_mode = 'full';
+      $view_mode = LayoutBuilderEntityViewDisplay::collectRenderDisplay($entity, $view_mode)->getMode();
+      $contexts['view_mode'] = new Context(new ContextDefinition('string'), $view_mode);
+      $section_storage = $this->pluginManagerLayoutBuilderSectionStorage->load($type, $contexts);
+      $section_storage = $this->layoutBuilderTempstoreRepository->get($section_storage);
+      $id = $section_storage->getStorageId();
+      $sections = $section_storage->getSections();
+      // Check through each section's components to confirm blocks are valid.
+      foreach ($sections as $key => &$section) {
+        $components = $section->getComponents();
+        foreach ($components as $section_component_uuid => $section_component) {
+          $configuration = $section_component->get('configuration');
+          $provider = $configuration['provider'] ?? '';
+          if ($provider == 'block_content') {
+            $raw_id = $configuration['id'];
+            $id = str_replace('block_content:', '', $raw_id);
+            // Attempt to find a block w/ this UUID.
+            $block = $this->blockContentUuidLookup->get($id);
+            if ($block == NULL) {
+              $section->removeComponent($section_component_uuid);
+              drupal_set_message(t("Sanitized :block", [':block' => $section_component_uuid]));
             }
           }
         }
-        $section_storage->save();
       }
+
+      // Sanitize default display.
+      $section_storage = $this->getSectionStorageForEntity($entity);
+      $sections = $section_storage->getSections();
+      foreach ($sections as $key => &$section) {
+        $components = $section->getComponents();
+        foreach ($components as $section_component_uuid => $section_component) {
+          $configuration = $section_component->get('configuration');
+          $provider = $configuration['provider'] ?? '';
+          if ($provider == 'block_content') {
+            $raw_id = $configuration['id'];
+            $id = str_replace('block_content:', '', $raw_id);
+            // Attempt to find a block w/ this UUID.
+            $block = $this->blockContentUuidLookup->get($id);
+            if ($block == NULL) {
+              $section->removeComponent($section_component_uuid);
+              drupal_set_message(t("Sanitized :block", [':block' => $section_component_uuid]));
+            }
+          }
+        }
+      }
+      $section_storage->save();
     }
     catch (\Exception $e) {
       drupal_set_message(t("An exception was encountered: :e", [':e' => $e->getMessage()]), 'warning');
