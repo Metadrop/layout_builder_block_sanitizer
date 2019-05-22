@@ -18,6 +18,7 @@ function layout_builder_block_sanitizer_drush_command() {
       'node' => 'A specific node ID to sanitize.',
     ],
     'examples' => [
+      'drush lbbssn' => 'Sanitize all nodes on site.',
       'drush lbbssn 3' => 'Sanitizes node with NID of 3.',
     ],
   ];
