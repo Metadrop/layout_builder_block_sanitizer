@@ -3,7 +3,7 @@ layout_builder_block_sanitizer.sanitizer_form:
   path: '/lbbs/sanitizer'
   defaults:
     _form: '\Drupal\layout_builder_block_sanitizer\Form\SanitizerForm'
-    _title: 'SanitizerForm'
+    _title: 'Layout Builder Block Sanitizer Control Panel'
   requirements:
     _permission: 'Use layout builder block sanitizer'
   

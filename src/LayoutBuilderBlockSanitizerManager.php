@@ -47,6 +47,15 @@ class LayoutBuilderBlockSanitizerManager {
   }
 
   /**
+   * Helper callback to get list of nodes.
+   * 
+   * @todo: Get only LB enabled node types?
+   */
+  public function getNodes() {
+    return Node::loadMultiple();
+  }
+
+  /**
    * Sanitize a node by ID.
    */
   public function sanitizeNode($nid_to_sanitize) {
