@@ -2,22 +2,60 @@
 
 namespace Drupal\layout_builder_block_sanitizer;
 
+use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+
 /**
  * Class LayoutBuilderBlockSanitizerBatch.
  *
  * Provides batch functionality for processing.
  */
-class LayoutBuilderBlockSanitizerBatch {
+class LayoutBuilderBlockSanitizerBatch implements ContainerInjectionInterface {
+
+  use StringTranslationTrait;
+
+  /**
+   * The layout builder block sanitizer manager.
+   *
+   * @var Drupal\layout_builder_block_sanitizer\LayoutBuilderBlockSanitizerManager
+   */
+  protected $layoutBuilderBlockSanitizerManager;
+
+  /**
+   * The layout builder block sanitizer batch class.
+   *
+   * @var Drupal\layout_builder_block_sanitizer\LayoutBuilderBlockSanitizerBatch
+   */
+  protected $layoutBuilderBlockSanitizerBatch;
+
+  /**
+   * Constructs a new SanitizerForm object.
+   */
+  public function __construct(
+    LayoutBuilderBlockSanitizerManager $layout_builder_block_sanitizer_manager
+  ) {
+    $this->layoutBuilderBlockSanitizerManager = $layout_builder_block_sanitizer_manager;
+  }
+
+  /**
+   * Create method.
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('layout_builder_block_sanitizer.manager')
+    );
+  }
 
   /**
    * Kick off batch process to sanitize all nodes on site.
    */
   public function batchSanitizeAllNodesStart() {
-    $nodes = \Drupal::service('layout_builder_block_sanitizer.manager')->getNodes();
+    $nodes = $this->layoutBuilderBlockSanitizerManager->getNodes();
     $nids = array_keys($nodes);
     batch_set([
-      'title' => t('Sanitizing nodes'),
-      'init_message' => t('Beginning node sanitize'),
+      'title' => $this->t('Sanitizing nodes'),
+      'init_message' => $this->t('Beginning node sanitize'),
       'operations' => [
         [
           ['Drupal\layout_builder_block_sanitizer\LayoutBuilderBlockSanitizerBatch', 'batchSanitizeAllNodes'],
@@ -80,15 +118,13 @@ class LayoutBuilderBlockSanitizerBatch {
   public static function batchCompleted($success, $results, $operations) {
     $messenger = \Drupal::messenger();
     if ($success == TRUE) {
-      $messenger
-        ->addMessage(t('@count nodes were sanitized.', [
-          '@count' => count($results),
-        ]));
+      $messenger->addMessage(t('@count nodes were sanitized.', [
+        '@count' => count($results),
+      ]));
     }
     else {
       // An error occurred.
-      $messenger
-        ->addMessage(t('An error occurred while processing.'));
+      $messenger->addMessage(t('An error occurred while processing.'));
     }
   }
 

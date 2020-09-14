@@ -4,6 +4,7 @@ namespace Drupal\layout_builder_block_sanitizer\Form;
 
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\layout_builder_block_sanitizer\LayoutBuilderBlockSanitizerManager;
 use Drupal\layout_builder_block_sanitizer\LayoutBuilderBlockSanitizerBatch;
@@ -11,7 +12,7 @@ use Drupal\layout_builder_block_sanitizer\LayoutBuilderBlockSanitizerBatch;
 /**
  * Class SanitizerForm.
  */
-class SanitizerForm extends FormBase {
+class SanitizerForm extends FormBase implements ContainerInjectionInterface {
 
   /**
    * The layout builder block sanitizer manager.
@@ -85,7 +86,7 @@ class SanitizerForm extends FormBase {
         '::batchSanitizeAllNodesStart',
       ],
       '#value' => 'Sanitize all nodes via batch',
-      '#description' => 'Note that caches will be cleared during this process automatically.',
+      '#description' => $this->t('Note that caches will be cleared during this process automatically.'),
     ];
 
     return $form;

@@ -4,20 +4,25 @@ namespace Drupal\layout_builder_block_sanitizer;
 
 use Drupal\block_content\BlockContentUuidLookup;
 use Drupal\layout_builder\LayoutTempstoreRepository;
-use Drupal\node\Entity\Node;
 use Drupal\layout_builder\SectionStorage\SectionStorageManager;
 use Drupal\Core\Plugin\Context\EntityContext;
 use Drupal\layout_builder\Entity\LayoutBuilderEntityViewDisplay;
 use Drupal\Core\Plugin\Context\Context;
 use Drupal\Core\Plugin\Context\ContextDefinition;
 use Drupal\layout_builder\LayoutEntityHelperTrait;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\Core\Messenger\MessengerInterface;
+use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 
 /**
  * Class LayoutBuilderBlockSanitizerManager.
  */
-class LayoutBuilderBlockSanitizerManager {
+class LayoutBuilderBlockSanitizerManager implements ContainerInjectionInterface {
 
   use LayoutEntityHelperTrait;
+  use StringTranslationTrait;
 
   /**
    * Drupal\block_content\BlockContentUuidLookup definition.
@@ -41,12 +46,41 @@ class LayoutBuilderBlockSanitizerManager {
   protected $layoutBuilderTempstoreRepository;
 
   /**
+   * The entity type manager.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+  /**
+   * The Messenger service.
+   *
+   * @var \Drupal\Core\Messenger\MessengerInterface
+   */
+  protected $messenger;
+
+  /**
    * Constructs a new LayoutBuilderBlockSanitizerManager object.
    */
-  public function __construct(BlockContentUuidLookup $block_content_uuid_lookup, SectionStorageManager $plugin_manager_layout_builder_section_storage, LayoutTempstoreRepository $layout_builder_tempstore_repository) {
+  public function __construct(BlockContentUuidLookup $block_content_uuid_lookup, SectionStorageManager $plugin_manager_layout_builder_section_storage, LayoutTempstoreRepository $layout_builder_tempstore_repository, EntityTypeManagerInterface $entity_type_manager, MessengerInterface $messenger) {
     $this->blockContentUuidLookup = $block_content_uuid_lookup;
     $this->pluginManagerLayoutBuilderSectionStorage = $plugin_manager_layout_builder_section_storage;
     $this->layoutBuilderTempstoreRepository = $layout_builder_tempstore_repository;
+    $this->entityTypeManager = $entity_type_manager;
+    $this->messenger = $messenger;
+  }
+
+  /**
+   * Create method.
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('block_content.uuid_lookup'),
+      $container->get('plugin.manager.layout_builder.section_storage'),
+      $container->get('layout_builder.tempstore_repository'),
+      $container->get('entity_type.manager'),
+      $container->get('messenger')
+    );
   }
 
   /**
@@ -55,7 +89,7 @@ class LayoutBuilderBlockSanitizerManager {
    * @todo: Get only LB enabled node types?
    */
   public function getNodes() {
-    return Node::loadMultiple();
+    return $this->entityTypeManager->getStorage('node')->loadMultiple();
   }
 
   /**
@@ -64,7 +98,7 @@ class LayoutBuilderBlockSanitizerManager {
   public function sanitizeNode($nid_to_sanitize) {
     try {
       // Load node objet to sanitize.
-      $entity = Node::load($nid_to_sanitize);
+      $entity = $this->entityTypeManager->getStorage('node')->load($nid_to_sanitize);
       $type = 'overrides';
       $contexts['entity'] = EntityContext::fromEntity($entity);
       $view_mode = 'full';
@@ -75,7 +109,7 @@ class LayoutBuilderBlockSanitizerManager {
       $id = $section_storage->getStorageId();
       $sections = $section_storage->getSections();
       // Check through each section's components to confirm blocks are valid.
-      foreach ($sections as $key => &$section) {
+      foreach ($sections as &$section) {
         $components = $section->getComponents();
         foreach ($components as $section_component_uuid => $section_component) {
           $configuration = $section_component->get('configuration');
@@ -87,7 +121,7 @@ class LayoutBuilderBlockSanitizerManager {
             $block = $this->blockContentUuidLookup->get($id);
             if ($block == NULL) {
               $section->removeComponent($section_component_uuid);
-              drupal_set_message(t("Sanitized :block", [':block' => $section_component_uuid]));
+              $this->messenger->addStatus($this->t("Sanitized :block", [':block' => $section_component_uuid]));
             }
           }
         }
@@ -96,7 +130,7 @@ class LayoutBuilderBlockSanitizerManager {
       // Sanitize default display.
       $section_storage = $this->getSectionStorageForEntity($entity);
       $sections = $section_storage->getSections();
-      foreach ($sections as $key => &$section) {
+      foreach ($sections as &$section) {
         $components = $section->getComponents();
         foreach ($components as $section_component_uuid => $section_component) {
           $configuration = $section_component->get('configuration');
@@ -108,7 +142,7 @@ class LayoutBuilderBlockSanitizerManager {
             $block = $this->blockContentUuidLookup->get($id);
             if ($block == NULL) {
               $section->removeComponent($section_component_uuid);
-              drupal_set_message(t("Sanitized :block", [':block' => $section_component_uuid]));
+              $this->messenger->addStatus($this->t("Sanitized :block", [':block' => $section_component_uuid]));
             }
           }
         }
@@ -119,7 +153,7 @@ class LayoutBuilderBlockSanitizerManager {
       // @todo Figure out why type error is thrown, take appropriate action.
     }
     catch (\Exception $e) {
-      drupal_set_message(t("An exception was encountered: :e", [':e' => $e->getMessage()]), 'warning');
+      $this->messenger->addWarning($this->t("An exception was encountered: :e", [':e' => $e->getMessage()]));
     }
   }
 
